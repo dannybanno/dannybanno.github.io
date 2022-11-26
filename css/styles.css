@@ -81,6 +81,16 @@ body{
   position: absolute;
   right: 30%;
   padding-bottom: 20px;
+  animation: rotate-back 2s;
+}
+
+@keyframes rotate-back {
+  from{
+    transform: rotate(-15deg);
+  }
+  to{
+    transform: rotate(0deg);
+  }
 }
 
 
