@@ -116,7 +116,25 @@ body{
   width: 35%;
 }
 
+.icon2{
+  color: #D72323;
+  margin-bottom: 1rem;
+  transition: color .5s;
+  float: right;
+  margin-left: 30px;
+  width: 35%;
+}
 
+.icon3{
+  color: #D72323;
+  margin-bottom: 1rem;
+  transition: color .5s;
+  width: 48%;
+  margin-left: 5%;
+  position: absolute;
+  right: 30%;
+  padding-bottom: 20px;
+}
 
 
 /* socials */
