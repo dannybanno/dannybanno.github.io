@@ -127,6 +127,22 @@ body{
 }
 
 
+.styled {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.styled li {
+  padding-left: 1rem;
+  text-indent: -0.75rem;
+  color: #fff;
+}
+
+.styled li::before {
+  content: '💾 ';
+}
+
 /* socials */
 
 .title-sec{
@@ -152,6 +168,10 @@ body{
   padding: 5%;
 }
 
+.list1{
+  padding: 1%;
+}
+
 .icon{
   color: #D72323;
   margin-bottom: 1rem;
@@ -163,7 +183,7 @@ body{
 }
 
 .proj-row {
-  width: 76%;
+  width: 58%;
   margin: 100px auto 100px auto;
   text-align: left;
   line-height: 2;
