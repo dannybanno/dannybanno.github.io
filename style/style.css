@@ -12,6 +12,11 @@ body{
   font-size: 30px;
 }
 
+.nav2{
+  background-color: #2a2a2a;
+  font-size: 25px;
+}
+
 #title1{
   background-color: #fff;
   padding: 125px;
@@ -63,4 +68,34 @@ body{
 
 .icons1{
   font-size: 200px;
+}
+
+.advertisement-banner {
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  width: 50%;
+  background-image: linear-gradient(153deg, rgba(79,0,153,1) 0%, rgba(180,0,0,1) 100%);
+  padding: 20px;
+  border-radius: 5px;
+  margin-top: 50px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.advertisement-banner h2 {
+  color: #fff;
+  text-decoration: none;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.advertisement-banner p {
+  text-decoration: none;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.centered-div a {
+  text-decoration: none;
 }
