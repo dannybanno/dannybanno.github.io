@@ -1,101 +1,139 @@
-
-
-body{
-  font-family: 'Montserrat', sans-serif;
-  background-color: #2a2a2a;
-  font-size: 40px;
+/* Common styles for all screen sizes */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #2a2a2a;
+    font-size: 40px;
+    margin: 0;
+    padding: 0;
 }
 
-
-.nav1{
-  background-color: #2a2a2a;
-  font-size: 30px;
+.navbar {
+    background-color: #2a2a2a;
+    font-size: 30px;
 }
 
-.nav2{
-  background-color: #2a2a2a;
-  font-size: 25px;
+#title1 {
+    background: linear-gradient(153deg, rgba(79, 0, 153, 1) 0%, rgba(180, 0, 0, 1) 100%);
+    box-shadow: inset 0 0 12.5px #2a2a2a;
+    padding: 125px;
+    text-align: center;
 }
 
-#title1{
-  background-color: #fff;
-  padding: 125px;
-  font-size: 100px;
-  text-align: center;
-  background: rgb(79,0,153);
-  background: linear-gradient(153deg, rgba(79,0,153,1) 0%, rgba(180,0,0,1) 100%);
-  box-shadow: inset 0 0 12.5px #2a2a2a;
+.titletxt {
+    font-size: 100px;
+    text-shadow:
+        0 1px 0 #181818,
+        0 2px 0 #181818,
+        0 3px 0 #181818,
+        0 4px 0 #181818,
+        0 5px 0 #181818,
+        0 6px 1px rgba(0, 0, 0, .1),
+        0 0 5px rgba(0, 0, 0, .1),
+        0 1px 3px rgba(0, 0, 0, .3),
+        0 3px 5px rgba(0, 0, 0, .2),
+        0 5px 10px rgba(0, 0, 0, .25),
+        0 10px 10px rgba(0, 0, 0, .2),
+        0 20px 20px rgba(0, 0, 0, .15);
 }
 
-.titletxt{
-  font-size: 100px;
-  text-shadow:
-    0 1px 0 #181818,
-    0 2px 0 #181818,
-    0 3px 0 #181818,
-    0 4px 0 #181818,
-    0 5px 0 #181818,
-    0 6px 1px rgba(0,0,0,.1),
-    0 0 5px rgba(0,0,0,.1),
-    0 1px 3px rgba(0,0,0,.3),
-    0 3px 5px rgba(0,0,0,.2),
-    0 5px 10px rgba(0,0,0,.25),
-    0 10px 10px rgba(0,0,0,.2),
-    0 20px 20px rgba(0,0,0,.15);
+.welcome {
+    color: #fff;
+    margin-top: 120px;
+    margin-left: 330px;
+    margin-right: 330px;
+    text-align: center;
+    font-size: 40px;
 }
 
-.welcome{
-  color: #fff;
-  margin-top: 120px;
-  margin-left: 330px;
-  margin-right: 330px;
-  text-align: center;
-  font-size: 40px;
+.feature-box {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-.icon{
-  background-image: linear-gradient(153deg, rgba(79,0,153,1) 0%, rgba(180,0,0,1) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 10px;
+.icon {
+    background-image: linear-gradient(153deg, rgba(79, 0, 153, 1) 0%, rgba(180, 0, 0, 1) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 10px;
 }
 
-.welcometxt{
-  margin-bottom: 120px;
-  font-size: 45px;
-}
-
-.icons1{
-  font-size: 200px;
+.welcometxt {
+    margin-bottom: 120px;
+    font-size: 45px;
 }
 
 .advertisement-banner {
-  color: #fff;
-  text-decoration: none;
-  text-align: center;
-  width: 50%;
-  background-image: linear-gradient(153deg, rgba(79,0,153,1) 0%, rgba(180,0,0,1) 100%);
-  padding: 20px;
-  border-radius: 5px;
-  margin-top: 50px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    color: #fff;
+    text-decoration: none;
+    background-image: linear-gradient(153deg, rgba(79, 0, 153, 1) 0%, rgba(180, 0, 0, 1) 100%);
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 50px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
 .advertisement-banner h2 {
-  color: #fff;
-  text-decoration: none;
-  font-size: 24px;
-  margin-bottom: 10px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    margin-bottom: 10px;
 }
 
 .advertisement-banner p {
-  text-decoration: none;
-  font-size: 16px;
-  color: #fff;
-  margin-bottom: 20px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 20px;
 }
 
 .centered-div a {
-  text-decoration: none;
+    text-decoration: none;
+}
+
+/* Media query for screens smaller than 768px (e.g., mobile devices) */
+@media (max-width: 768px) {
+    body {
+        font-size: 20px;
+    }
+
+    .navbar {
+        font-size: 25px;
+    }
+
+    #title1 {
+        padding: 60px; /* Adjusted padding for smaller screens */
+    }
+
+    .titletxt {
+        font-size: 60px;
+    }
+
+    .welcome {
+        margin-top: 20px;
+        margin-left: 20px;
+        margin-right: 20px;
+        font-size: 24px;
+    }
+
+    .feature-box {
+        margin-bottom: 10px;
+    }
+
+    .welcometxt {
+        font-size: 28px;
+    }
+
+    .advertisement-banner {
+        padding: 10px;
+        margin-top: 20px;
+    }
+
+    .advertisement-banner h2 {
+        font-size: 18px;
+    }
+
+    .advertisement-banner p {
+        font-size: 16px;
+    }
 }
