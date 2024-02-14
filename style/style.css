@@ -70,32 +70,231 @@ body{
   font-size: 200px;
 }
 
-.advertisement-banner {
-  color: #fff;
-  text-decoration: none;
-  text-align: center;
-  width: 50%;
-  background-image: linear-gradient(153deg, rgba(79,0,153,1) 0%, rgba(180,0,0,1) 100%);
-  padding: 20px;
-  border-radius: 5px;
-  margin-top: 50px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-}
-
-.advertisement-banner h2 {
-  color: #fff;
-  text-decoration: none;
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.advertisement-banner p {
-  text-decoration: none;
-  font-size: 16px;
-  color: #fff;
-  margin-bottom: 20px;
-}
-
 .centered-div a {
   text-decoration: none;
+}
+
+.feature-box{
+  margin-bottom: 100px;
+}
+
+.card-title{
+  margin-top: 10px;
+  font-size: 24px;
+  padding-left: 10px;
+}
+
+.card-text {
+  font-size: 16px;
+  padding-left: 10px;
+  color: #fff;
+}
+
+.card-blog a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-blog {
+  background-color: #393939;
+  text-align: left;
+  font-size: smaller;
+  border-style: solid;
+  border-color: #fff;
+  border-width: 0.5px; 
+  border-radius: 5px;
+  max-width: 1024px;
+  color: inherit; /* Set the link color to inherit from the parent */
+  text-decoration: none; 
+}
+
+.blog-info{
+  text-align: left;
+  background-color: #2b2b2b;
+  border-style: solid;
+  border-color: #606060;
+  border-width: 0.5px; 
+  border-radius: 5px;
+  max-width: 1024px;
+  margin-bottom: 60px;
+}
+
+.infostuff{
+  color: #979797;
+  text-align: right;
+  font-size: 6px;
+}
+
+.heading{
+  padding-left: 10px;
+  font-size: 28px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.code-block {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0;
+  margin: 20px;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: #333;
+}
+
+.language {
+  color: #8a8a8a;
+  font-size: 12px;
+}
+
+.code-content {
+  padding: 16px;
+  overflow-x: auto;
+  color: #ffffff;
+}
+
+pre {
+  margin: 0;
+}
+
+code {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.copy-button {
+  cursor: pointer;
+  color: #8a8a8a;
+}
+
+/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/
+
+.hljs {
+  color: #c9d1d9;
+  background: #0d1117;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable.language_ {
+  /* prettylights-syntax-keyword */
+  color: #ff7b72;
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_ {
+  /* prettylights-syntax-entity */
+  color: #d2a8ff;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-literal,
+.hljs-meta,
+.hljs-number,
+.hljs-operator,
+.hljs-variable,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  /* prettylights-syntax-constant */
+  color: #79c0ff;
+}
+
+.hljs-regexp,
+.hljs-string,
+.hljs-meta .hljs-string {
+  /* prettylights-syntax-string */
+  color: #a5d6ff;
+}
+
+.hljs-built_in,
+.hljs-symbol {
+  /* prettylights-syntax-variable */
+  color: #ffa657;
+}
+
+.hljs-comment,
+.hljs-code,
+.hljs-formula {
+  /* prettylights-syntax-comment */
+  color: #8b949e;
+}
+
+.hljs-name,
+.hljs-quote,
+.hljs-selector-tag,
+.hljs-selector-pseudo {
+  /* prettylights-syntax-entity-tag */
+  color: #7ee787;
+}
+
+.hljs-subst {
+  /* prettylights-syntax-storage-modifier-import */
+  color: #c9d1d9;
+}
+
+.hljs-section {
+  /* prettylights-syntax-markup-heading */
+  color: #1f6feb;
+  font-weight: bold;
+}
+
+.hljs-bullet {
+  /* prettylights-syntax-markup-list */
+  color: #f2cc60;
+}
+
+.hljs-emphasis {
+  /* prettylights-syntax-markup-italic */
+  color: #c9d1d9;
+  font-style: italic;
+}
+
+.hljs-strong {
+  /* prettylights-syntax-markup-bold */
+  color: #c9d1d9;
+  font-weight: bold;
+}
+
+.hljs-addition {
+  /* prettylights-syntax-markup-inserted */
+  color: #aff5b4;
+  background-color: #033a16;
+}
+
+.hljs-deletion {
+  /* prettylights-syntax-markup-deleted */
+  color: #ffdcd7;
+  background-color: #67060c;
+}
+
+.hljs-char.escape_,
+.hljs-link,
+.hljs-params,
+.hljs-property,
+.hljs-punctuation,
+.hljs-tag {
+  /* purposely ignored */
 }
