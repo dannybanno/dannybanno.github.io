@@ -17,6 +17,12 @@ body{
   font-size: 25px;
 }
 
+.navaa {
+  background-color: #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
+  padding: 10px; 
+}
+
 #title1{
   background-color: #fff;
   padding: 125px;
@@ -68,6 +74,37 @@ body{
   .welcome {
     color: #fff;
     margin-top: 120px;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: center;
+    font-size: 40px;
+  }
+}
+
+.blog-welcome{
+  color: #fff;
+  margin-top: 50px;
+  margin-left: 330px;
+  margin-right: 330px;
+  text-align: center;
+  font-size: 40px;
+}
+
+@media (max-width: 1128px) {
+  .blog-welcome {
+    color: #fff;
+    margin-top: 50px;
+    margin-left: 10px;
+    margin-right: 10px;
+    text-align: center;
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .blog-welcome {
+    color: #fff;
+    margin-top: 50px;
     margin-left: 0;
     margin-right: 0;
     text-align: center;
