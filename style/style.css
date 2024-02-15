@@ -126,8 +126,14 @@ body{
   border-width: 0.5px; 
   border-radius: 5px;
   max-width: 1024px;
-  color: inherit; /* Set the link color to inherit from the parent */
-  text-decoration: none; 
+  color: inherit; 
+  text-decoration: none;
+  transition: box-shadow 0.3s;
+}
+
+
+.card-blog:hover {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .blog-info{
