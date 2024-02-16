@@ -118,6 +118,7 @@ body{
   background-clip: text;
   color: transparent;
   margin-bottom: 10px;
+  animation: fadeIn 1s;
 }
 
 .welcometxt{
@@ -166,6 +167,7 @@ body{
   color: inherit; 
   text-decoration: none;
   transition: box-shadow 0.3s;
+  animation: fadeIn 1s;
 }
 
 
@@ -190,8 +192,8 @@ body{
   100% { opacity: 1; }
 }
 
-.img-fluid{
-  
+.process-list{
+  width: 75%;
 }
 
 .infostuff{
