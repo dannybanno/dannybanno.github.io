@@ -182,11 +182,27 @@ body{
   border-radius: 5px;
   max-width: 1024px;
   margin-bottom: 60px;
+  animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.img-fluid{
+  
 }
 
 .infostuff{
   color: #979797;
   text-align: right;
+  font-size: 6px;
+}
+
+.readtime{
+  color: #979797;
+  text-align: left;
   font-size: 6px;
 }
 

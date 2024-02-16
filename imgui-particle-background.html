@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
     <link rel="stylesheet" href="style/style.css">
-  </head>
+</head>
 
   <body>
 
@@ -34,13 +34,21 @@
                         <h2>ImGui Particle Background</h2>
                     </div>
                     <div class="col infostuff">
-                        <h5>February 14, 2024</h5>
+                        <h5>Wednesday, February 14, 2024</h5>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col readtime">
+                      <h6>5min read</h6>
+                    </div>
+                  </div>
             </div>
             <hr>
             <h2 class="heading">Creating a Dynamic Particle Background with ImGui</h2>
             <p style="font-size: 20px; padding-left: 10px;padding-right: 10px;font-family: 'Georgia', Times, serif; color:rgb(200, 200, 200);">Do you want to improve the style of your application? Here's a glimpse into crafting a dynamic particle background using ImGui. This implementation introduces a mesmerizing interplay of lines and particles that react to cursor movements within an ImGui window.</p>
+            <div class="text-center">
+              <img src="https://camo.githubusercontent.com/5998ad63247ab8cab418d79ed25c5989b8da96ad6ccff7579d02f10007633251/68747470733a2f2f692e696d6775722e636f6d2f50744e6d6a48392e706e67" class="img-fluid" alt="img-of-it">
+            </div>
             <h2 class="heading">Initialization of Particles:</h2>
             <p style="font-size: 20px; padding-left: 10px;padding-right: 10px;font-family: 'Georgia', Times, serif; color:rgb(200, 200, 200);">The magic begins by initializing particles with random positions and velocities. Each particle finds its home within the ImGui window, equipped with a unique trajectory for future animation.</p>
         
@@ -152,12 +160,13 @@
     </center>
     </div>
 
-
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
+    
     <script>
+
+      // stolen chatgpt code as i do not know js, atleast not yet...
+
     document.addEventListener('DOMContentLoaded', (event) => {
         // Initialize highlight.js
         hljs.highlightAll();
