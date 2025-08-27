@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Reverse Engineering Windows - A deep dive into Windows internals and analysis techniques">
+    <title>Reverse Engineering Windows - Danny's Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="blog.css">
+    <link rel="stylesheet" href="blog-post.css">
+    <script>
+        // Pre-render initialization
+        if (localStorage.getItem('blog-read-mode') === 'true') {
+            document.documentElement.classList.add('read-mode-preload');
+            
+            // Add these styles to avoid any black flash or green text
+            document.write('<style>' +
+                'html, body { background-color: #f8f8f8 !important; color: #333 !important; }' +
+                '.page-transition-overlay { background-color: #f8f8f8 !important; }' +
+                '</style>');
+        }
+    </script>
+    <style>
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        /* Read mode overlay styles */
+        html.read-mode-preload .page-transition-overlay,
+        body.read-mode .page-transition-overlay,
+        body.read-mode-init .page-transition-overlay {
+            background-color: #f8f8f8 !important;
+        }
+        
+        /* Keep the black overlay fully visible until completely loaded */
+        body.loading {
+            background-color: #000;
+        }
+        
+        body.loading .page-transition-overlay {
+            opacity: 1;
+        }
+        
+        /* Complete invisibility of content until fully ready */
+        body.loading .container,
+        body.loading #toggle-rain,
+        body.loading .read-mode-toggle,
+        body.loading #matrix-rain,
+        body.loading .content-backdrop {
+            opacity: 0;
+        }
+        
+        /* Prevent flash of green when in reading mode */
+        html.read-mode-preload,
+        body.read-mode-init {
+            background-color: #f8f8f8 !important;
+            color: #333 !important;
+            visibility: hidden;
+        }
+        
+        body.read-mode-init .blog-post-full {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-color: #ddd !important;
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .post-title,
+        body.read-mode-init .post-content h2,
+        body.read-mode-init .back-link,
+        body.read-mode-init .read-mode-toggle {
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .content-backdrop {
+            background-color: rgba(240, 240, 240, 0.98) !important;
+        }
+        
+        body.read-mode-init #matrix-rain {
+            opacity: 0.03 !important;
+        }
+    </style>
+</head>
+<body class="loading">
+    <script>
+        // Immediate execution before any elements are painted
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                document.documentElement.style.backgroundColor = '#f8f8f8';
+                document.documentElement.style.color = '#333';
+                document.body.style.color = '#333';
+            }
+        }, {once: true});
+    </script>
+    <div class="page-transition-overlay"></div>
+    <canvas id="matrix-rain"></canvas>
+    <div class="content-backdrop"></div>
+    <button id="toggle-rain" class="toggle-rain-btn" title="Toggle Matrix Rain">
+        <i class="fas fa-tint"></i>
+    </button>
+    
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="top-navigation mt-4">
+                    <a href="blog.html" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Blog
+                    </a>
+                    <button id="read-mode-toggle" class="read-mode-toggle pill-button">
+                        <i class="fas fa-book-reader"></i> Reading Mode
+                    </button>
+                </div>
+                
+                <article class="blog-post-full">
+                    <header class="post-header">
+                        <h1 class="post-title">Reverse Engineering Windows</h1>
+                        <div class="post-meta">
+                            <time class="post-date" datetime="2025-02-15">15th, Feb, 2025</time>
+                            <div class="post-tags">
+                                <span class="tag">C++</span>
+                                <span class="tag">Reverse Engineering</span>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div class="post-content">
+                        <p>
+                            Reverse engineering Windows components provides valuable insights into how the operating system works under the hood. In this post, I'll share some techniques I've used to analyze Windows executables and understand their behavior.
+                        </p>
+                        
+                        <section>
+                            <h2>Setting Up the Tools</h2>
+                            <p>
+                                For effective Windows reverse engineering, I use the following tools:
+                            </p>
+                            <ul class="custom-list">
+                                <li>Ghidra for static analysis and decompilation</li>
+                                <li>x64dbg for dynamic analysis and debugging</li>
+                                <li>Process Monitor for observing system calls</li>
+                                <li>PE Explorer for examining PE file structure</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h2>Analyzing a Simple Windows DLL</h2>
+                            <p>
+                                Let's examine a basic approach to reverse engineering a Windows DLL. First, we'll look at the exported functions using Ghidra:
+                            </p>
+                            
+                            <pre><code>// Decompiled function from a Windows DLL
+BOOL __stdcall IsFeatureEnabled(LPCWSTR featureName)
+{
+  DWORD dwType;
+  DWORD dwSize;
+  DWORD dwValue;
+  HKEY hKey;
+  BOOL result;
+  
+  dwValue = 0;
+  result = FALSE;
+  
+  // Open registry key
+  if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, 
+                    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Features",
+                    0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+    
+    dwSize = 4;
+    
+    // Query the value
+    if (RegQueryValueExW(hKey, featureName, NULL, &dwType, 
+                         (LPBYTE)&dwValue, &dwSize) == ERROR_SUCCESS) {
+      if (dwType == REG_DWORD && dwValue == 1) {
+        result = TRUE;
+      }
+    }
+    
+    RegCloseKey(hKey);
+  }
+  
+  return result;
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Tracing System Calls</h2>
+                            <p>
+                                Using Process Monitor, we can observe the registry access patterns when this function is called:
+                            </p>
+                            <ol class="custom-list numbered">
+                                <li>RegOpenKeyEx is called to open the Features registry key</li>
+                                <li>RegQueryValueEx is called to check if the feature is enabled</li>
+                                <li>RegCloseKey is called to close the handle</li>
+                            </ol>
+                        </section>
+                        
+                        <section>
+                            <h2>Hooking Windows API Calls</h2>
+                            <p>
+                                One powerful technique for understanding Windows internals is API hooking. Here's a simple example of how to hook the MessageBoxW function:
+                            </p>
+                            
+                            <pre><code>// Hook for MessageBoxW
+typedef int (WINAPI *MessageBoxW_t)(HWND, LPCWSTR, LPCWSTR, UINT);
+
+MessageBoxW_t OriginalMessageBoxW = NULL;
+FARPROC pOriginalMessageBoxW = NULL;
+
+int WINAPI HookedMessageBoxW(HWND hWnd, LPCWSTR lpText, 
+                            LPCWSTR lpCaption, UINT uType)
+{
+    // Log the intercepted call
+    wprintf(L"MessageBoxW called with text: %s\n", lpText);
+    
+    // Call the original function
+    return OriginalMessageBoxW(hWnd, lpText, lpCaption, uType);
+}
+
+void InstallHook()
+{
+    HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+    if (!hUser32) return;
+    
+    // Get the address of the original function
+    pOriginalMessageBoxW = GetProcAddress(hUser32, "MessageBoxW");
+    if (!pOriginalMessageBoxW) return;
+    
+    OriginalMessageBoxW = (MessageBoxW_t)pOriginalMessageBoxW;
+    
+    // Create a detour
+    DetourTransactionBegin();
+    DetourUpdateThread(GetCurrentThread());
+    DetourAttach(&(PVOID&)OriginalMessageBoxW, HookedMessageBoxW);
+    DetourTransactionCommit();
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Understanding Protection Mechanisms</h2>
+                            <p>
+                                Windows employs various protection mechanisms like ASLR (Address Space Layout Randomization) and DEP (Data Execution Prevention). Here's how we can check if they're enabled for a process:
+                            </p>
+                            
+                            <pre><code>BOOL CheckProcessMitigations(HANDLE hProcess)
+{
+    PROCESS_MITIGATION_DEP_POLICY depPolicy = {0};
+    PROCESS_MITIGATION_ASLR_POLICY aslrPolicy = {0};
+    
+    // Check DEP status
+    if (GetProcessMitigationPolicy(hProcess, 
+                                 ProcessDEPPolicy, 
+                                 &depPolicy, 
+                                 sizeof(depPolicy))) {
+        printf("DEP Enabled: %s\n", 
+               depPolicy.Enable ? "Yes" : "No");
+    }
+    
+    // Check ASLR status
+    if (GetProcessMitigationPolicy(hProcess, 
+                                 ProcessASLRPolicy, 
+                                 &aslrPolicy, 
+                                 sizeof(aslrPolicy))) {
+        printf("ASLR Enabled: %s\n", 
+               aslrPolicy.EnableForceRelocateImages ? "Yes" : "No");
+    }
+    
+    return TRUE;
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Next Steps</h2>
+                            <p>
+                                In future posts, I'll explore more advanced Windows reverse engineering techniques, including:
+                            </p>
+                            <ul class="custom-list">
+                                <li>Kernel-level debugging with WinDbg</li>
+                                <li>Analyzing COM objects and DCOM interfaces</li>
+                                <li>Reverse engineering Windows services and drivers</li>
+                                <li>Understanding the Windows security model</li>
+                            </ul>
+                            <p>
+                                Stay tuned for more deep dives into Windows internals!
+                            </p>
+                        </section>
+                    </div>
+                    
+                    <footer class="post-navigation">
+                        <a href="blog-post.html" class="nav-link prev-post"><i class="fas fa-arrow-left"></i> Previous Post</a>
+                        <a href="blog-post-3.html" class="nav-link next-post">Next Post <i class="fas fa-arrow-right"></i></a>
+                    </footer>
+                </article>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Set overlay color immediately based on saved read mode
+        (function() {
+            const overlay = document.querySelector('.page-transition-overlay');
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                overlay.style.backgroundColor = '#f8f8f8';
+            }
+        })();
+        
+        // Apply reading mode right at page load, before any rendering
+        (function() {
+            // Check for saved reading mode ASAP
+            const savedReadMode = localStorage.getItem('blog-read-mode') === 'true';
+            if (savedReadMode) {
+                // Add class to html element to prevent any rendering until properly styled
+                document.documentElement.classList.add('read-mode-preload');
+                // Apply classes to body for the reading mode
+                document.body.classList.add('read-mode');
+                document.body.classList.add('read-mode-init');
+            }
+        })();
+        
+        // Safely display the page after all resources and styles are applied
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slightly longer delay to ensure all styles are properly applied
+            setTimeout(() => {
+                // First set up the styles and transitions
+                const container = document.querySelector('.container');
+                const toggleRain = document.querySelector('#toggle-rain');
+                const readModeToggle = document.querySelector('.read-mode-toggle');
+                const matrixRain = document.querySelector('#matrix-rain');
+                
+                container.style.transition = 'opacity 0.3s ease';
+                toggleRain.style.transition = 'opacity 0.3s ease';
+                readModeToggle.style.transition = 'opacity 0.3s ease';
+                matrixRain.style.transition = 'opacity 0.3s ease';
+                
+                // Make everything visible with a slight delay
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                    toggleRain.style.opacity = '1';
+                    readModeToggle.style.opacity = '1';
+                    
+                    // Remove loading and initialization classes
+                    document.body.classList.remove('loading');
+                    document.body.classList.remove('read-mode-init');
+                    document.documentElement.classList.remove('read-mode-preload');
+                    document.querySelector('.page-transition-overlay').style.opacity = '0';
+                    
+                    // Make html visible again
+                    document.documentElement.style.visibility = 'visible';
+                }, 100);
+            }, 100);
+        });
+        
+        // Function to save preferences to localStorage
+        function savePreferences() {
+            const isReadMode = document.body.classList.contains('read-mode');
+            const isMatrixActive = document.getElementById('toggle-rain').classList.contains('active');
+            
+            localStorage.setItem('blog-read-mode', isReadMode ? 'true' : 'false');
+            localStorage.setItem('blog-matrix-active', isMatrixActive ? 'true' : 'false');
+        }
+        
+        // Matrix rain toggle
+        document.getElementById('toggle-rain').addEventListener('click', function() {
+            const canvas = document.getElementById('matrix-rain');
+            const backdrop = document.querySelector('.content-backdrop');
+            const isReadMode = document.body.classList.contains('read-mode');
+            
+            if (this.classList.contains('active')) {
+                // Turn off matrix effect (full opacity backdrop)
+                canvas.style.opacity = '0';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)';
+                this.classList.remove('active');
+            } else {
+                // Turn on matrix effect (semi-transparent backdrop with blur)
+                canvas.style.opacity = isReadMode ? '0.03' : '0.65';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(240, 240, 240, 0.98)' : 'rgba(0, 0, 0, 0.65)';
+                this.classList.add('active');
+            }
+            
+            savePreferences();
+        });
+        
+        // Reading mode toggle
+        document.getElementById('read-mode-toggle').addEventListener('click', function() {
+            const body = document.body;
+            const backdrop = document.querySelector('.content-backdrop');
+            const matrixRain = document.getElementById('matrix-rain');
+            const toggleRainBtn = document.getElementById('toggle-rain');
+            
+            if (body.classList.contains('read-mode')) {
+                // Switch to dark mode
+                body.classList.remove('read-mode');
+                this.classList.remove('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
+                    matrixRain.style.opacity = '0.65';
+                }
+            } else {
+                // Switch to read mode
+                body.classList.add('read-mode');
+                this.classList.add('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(240, 240, 240, 0.98)';
+                    matrixRain.style.opacity = '0.03';
+                }
+            }
+            
+            savePreferences();
+        });
+        
+        // Modified link transition to use the page transition overlay
+        document.querySelectorAll('a').forEach(link => {
+            if (link.hostname === window.location.hostname) {
+                link.addEventListener('click', function(e) {
+                    // Don't apply to download links or anchors
+                    if (link.getAttribute('download') || link.getAttribute('href').startsWith('#')) {
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    
+                    // Set the reading mode in transitions
+                    const isReadMode = document.body.classList.contains('read-mode');
+                    
+                    // Apply reading mode text color to body immediately
+                    if (isReadMode) {
+                        document.body.style.color = '#333';
+                    }
+                    
+                    // Create a persistent overlay that won't flicker
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.backgroundColor = isReadMode ? '#f8f8f8' : '#000';
+                    overlay.style.color = isReadMode ? '#333' : '#00ff00';
+                    overlay.style.zIndex = '99999';
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.3s ease';
+                    document.body.appendChild(overlay);
+                    
+                    // Fade to overlay color
+                    setTimeout(() => {
+                        overlay.style.opacity = '1';
+                    }, 10);
+                    
+                    // Add special flags to localStorage to indicate a page transition with reading mode state
+                    localStorage.setItem('blog-page-transition', 'true');
+                    localStorage.setItem('blog-transition-read-mode', isReadMode ? 'true' : 'false');
+                    
+                    // Navigate after fade completes
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, 300);
+                });
+            }
+        });
+        
+        // Check if we're coming from another page with a transition
+        if (localStorage.getItem('blog-page-transition') === 'true') {
+            // Clear the flags immediately
+            const wasInReadMode = localStorage.getItem('blog-transition-read-mode') === 'true';
+            localStorage.removeItem('blog-page-transition');
+            localStorage.removeItem('blog-transition-read-mode');
+            
+            // Set appropriate colors for read mode
+            if (wasInReadMode) {
+                document.body.style.color = '#333';
+                document.documentElement.style.color = '#333';
+            }
+            
+            // Keep the overlay visible longer with appropriate color
+            const overlay = document.querySelector('.page-transition-overlay');
+            overlay.style.backgroundColor = wasInReadMode ? '#f8f8f8' : '#000';
+            overlay.style.opacity = '1';
+        }
+    </script>
+</body>
+</html> 

@@ -5,6 +5,7 @@ body {
     background-color: black;
     color: white;
     font-family: Arial, sans-serif;
+    cursor: none; /* Hide default cursor */
 }
 
 #matrix-rain {
@@ -52,6 +53,18 @@ body {
     pointer-events: auto;
 }
 
+.custom-cursor {
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 255, 0, 0.5);
+    border: 2px solid green;
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+}
+
 .icon {
     position: absolute;
     width: 50px;
@@ -65,7 +78,9 @@ body {
     font-size: 24px;
     text-decoration: none;
     filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.5));
-    transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    transform-origin: center;
+    cursor: none;
 }
 
 .icon:hover {

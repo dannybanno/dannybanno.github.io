@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Developing an OS: Part 1 - A deep dive into operating system development">
+    <title>Developing an OS: Part 1 - Danny's Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="blog.css">
+    <link rel="stylesheet" href="blog-post.css">
+    <script>
+        // Pre-render initialization
+        if (localStorage.getItem('blog-read-mode') === 'true') {
+            document.documentElement.classList.add('read-mode-preload');
+            
+            // Add these styles to avoid any black flash or green text
+            document.write('<style>' +
+                'html, body { background-color: #f8f8f8 !important; color: #333 !important; }' +
+                '.page-transition-overlay { background-color: #f8f8f8 !important; }' +
+                '</style>');
+        }
+    </script>
+    <style>
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        /* Read mode overlay styles */
+        html.read-mode-preload .page-transition-overlay,
+        body.read-mode .page-transition-overlay,
+        body.read-mode-init .page-transition-overlay {
+            background-color: #f8f8f8 !important;
+        }
+        
+        /* Keep the black overlay fully visible until completely loaded */
+        body.loading {
+            background-color: #000;
+        }
+        
+        body.loading .page-transition-overlay {
+            opacity: 1;
+        }
+        
+        /* Complete invisibility of content until fully ready */
+        body.loading .container,
+        body.loading #toggle-rain,
+        body.loading .read-mode-toggle,
+        body.loading #matrix-rain,
+        body.loading .content-backdrop {
+            opacity: 0;
+        }
+        
+        /* Prevent flash of green when in reading mode */
+        html.read-mode-preload,
+        body.read-mode-init {
+            background-color: #f8f8f8 !important;
+            color: #333 !important;
+            visibility: hidden;
+        }
+        
+        body.read-mode-init .blog-post-full {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-color: #ddd !important;
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .post-title,
+        body.read-mode-init .post-content h2,
+        body.read-mode-init .back-link,
+        body.read-mode-init .read-mode-toggle {
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .content-backdrop {
+            background-color: rgba(240, 240, 240, 0.98) !important;
+        }
+        
+        body.read-mode-init #matrix-rain {
+            opacity: 0.03 !important;
+        }
+    </style>
+</head>
+<body class="loading">
+    <script>
+        // Immediate execution before any elements are painted
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                document.documentElement.style.backgroundColor = '#f8f8f8';
+                document.documentElement.style.color = '#333';
+                document.body.style.color = '#333';
+            }
+        }, {once: true});
+    </script>
+    <div class="page-transition-overlay"></div>
+    <canvas id="matrix-rain"></canvas>
+    <div class="content-backdrop"></div>
+    <button id="toggle-rain" class="toggle-rain-btn" title="Toggle Matrix Effect">
+        <i class="fas fa-tint"></i>
+    </button>
+    
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="top-navigation mt-4">
+                    <a href="blog.html" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Blog
+                    </a>
+                    <button id="read-mode-toggle" class="read-mode-toggle pill-button">
+                        <i class="fas fa-book-reader"></i> Reading Mode
+                    </button>
+                </div>
+                
+                <article class="blog-post-full">
+                    <header class="post-header">
+                        <h1 class="post-title">Creating a Basic Aimbot: Part 1</h1>
+                        <div class="post-meta">
+                            <time class="post-date" datetime="2025-03-28">28th, Mar, 2025</time>
+                            <div class="post-tags">
+                                <span class="tag">C++</span>
+                                <span class="tag">Game Hacking</span>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div class="post-content">
+                        <p>
+                            Creating an aimbot for educational purposes is an excellent way to understand game internals, memory manipulation, and 3D math. In this tutorial series, I'll walk through the basic concepts and implementation of a simple aimbot.
+                        </p>
+                        
+                        <section>
+                            <h2>Setting Up the Environment</h2>
+                            <p>
+                                Before writing any code, we need to set up our development environment with the right tools:
+                            </p>
+                            <ul class="custom-list">
+                                <li>Visual Studio for C++ development</li>
+                                <li>Cheat Engine for memory analysis</li>
+                                <li>ReClass.NET for structure exploration</li>
+                                <li>A test game (preferably one with a single-player mode or practice environment)</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h2>Understanding the Basics</h2>
+                            <p>
+                                An aimbot works by manipulating the player's view angles to point toward enemy positions. To accomplish this, we need to:
+                            </p>
+                            <ol class="custom-list numbered">
+                                <li>Find the player's position in 3D space</li>
+                                <li>Find enemy positions in 3D space</li>
+                                <li>Calculate the angle needed to aim at an enemy</li>
+                                <li>Write this angle to the player's view angle in memory</li>
+                            </ol>
+                            <p>
+                                Let's start with some basic vector math that will help us calculate aim angles:
+                            </p>
+                            
+                            <pre><code>// Basic Vector3 structure
+struct Vector3 {
+    float x, y, z;
+    
+    Vector3() : x(0.f), y(0.f), z(0.f) {}
+    Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
+    
+    // Calculate vector length
+    float Length() const {
+        return sqrt(x*x + y*y + z*z);
+    }
+    
+    // Normalize the vector (make length = 1)
+    Vector3 Normalize() const {
+        float length = Length();
+        if (length == 0.f)
+            return Vector3();
+        return Vector3(x / length, y / length, z / length);
+    }
+};
+
+// Calculate the angle between two 3D positions
+Vector3 CalculateAngle(const Vector3& localPosition, const Vector3& enemyPosition) {
+    Vector3 delta = Vector3(
+        enemyPosition.x - localPosition.x,
+        enemyPosition.y - localPosition.y,
+        enemyPosition.z - localPosition.z
+    );
+    
+    // Calculate the yaw (left/right) angle
+    float yaw = atan2(delta.y, delta.x) * 180.0f / M_PI;
+    
+    // Calculate the pitch (up/down) angle
+    float hypotenuse = sqrt(delta.x * delta.x + delta.y * delta.y);
+    float pitch = -atan2(delta.z, hypotenuse) * 180.0f / M_PI;
+    
+    // Return as a Vector3 (with roll set to 0)
+    return Vector3(pitch, yaw, 0.0f);
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Accessing Game Memory</h2>
+                            <p>
+                                To interact with the game, we need to access its memory. Here's a basic approach to read memory from a process:
+                            </p>
+                            <pre><code>// Basic memory reading function
+template<typename T>
+T ReadMemory(HANDLE processHandle, uintptr_t address) {
+    T value;
+    ReadProcessMemory(processHandle, (LPCVOID)address, &value, sizeof(T), nullptr);
+    return value;
+}
+
+// Basic memory writing function
+template<typename T>
+bool WriteMemory(HANDLE processHandle, uintptr_t address, T value) {
+    return WriteProcessMemory(processHandle, (LPVOID)address, &value, sizeof(T), nullptr);
+}
+
+// Find process by name and get handle
+HANDLE GetProcessHandle(const char* processName) {
+    DWORD processId = 0;
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    
+    if (snapshot != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32 processEntry;
+        processEntry.dwSize = sizeof(PROCESSENTRY32);
+        
+        if (Process32First(snapshot, &processEntry)) {
+            do {
+                if (_stricmp(processEntry.szExeFile, processName) == 0) {
+                    processId = processEntry.th32ProcessID;
+                    break;
+                }
+            } while (Process32Next(snapshot, &processEntry));
+        }
+        CloseHandle(snapshot);
+    }
+    
+    if (processId == 0)
+        return NULL;
+        
+    return OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, processId);
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Finding Game Offsets</h2>
+                            <p>
+                                Before we can read player and enemy positions, we need to find their offsets in memory. This is typically done with tools like Cheat Engine:
+                            </p>
+                            <ol class="custom-list numbered">
+                                <li>Find the base address of the player entity</li>
+                                <li>Locate the offset for the position within the player structure</li>
+                                <li>Find the entity list containing all players/enemies</li>
+                                <li>Determine the size of each entity in the list</li>
+                            </ol>
+                            <p>
+                                For our example, let's assume we've found these addresses and offsets already:
+                            </p>
+                            <pre><code>// Game-specific offsets (these will vary by game)
+namespace Offsets {
+    // Module base addresses
+    uintptr_t gameModule = 0x00400000;
+    
+    // Player offsets
+    uintptr_t playerBase = 0x00A3C5D8;
+    uintptr_t viewAngles = 0x38;
+    uintptr_t position = 0x50;
+    
+    // Entity list offsets
+    uintptr_t entityList = 0x00B4E6C0;
+    uintptr_t entitySize = 0x20;
+    uintptr_t entityCount = 0x00B4E6BC;
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Next Steps</h2>
+                            <p>
+                                In the next part of this series, we'll implement:
+                            </p>
+                            <ul class="custom-list">
+                                <li>A complete aimbot function that targets the closest enemy</li>
+                                <li>Field-of-view (FOV) checks to avoid suspicious snapping</li>
+                                <li>Visibility checks to avoid aiming at enemies behind walls</li>
+                                <li>Smoothing to make the aim movement look more natural</li>
+                            </ul>
+                            <p>
+                                Stay tuned for Part 2, where we'll dive deeper into creating a more sophisticated aimbot!
+                            </p>
+                        </section>
+                    </div>
+                    
+                    <footer class="post-navigation">
+                        <a class="nav-link disabled prev-post"><i class="fas fa-arrow-left"></i> Previous Post</a>
+                        <a href="blog-post-2.html" class="nav-link next-post">Next Post <i class="fas fa-arrow-right"></i></a>
+                    </footer>
+                </article>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Set overlay color immediately based on saved read mode
+        (function() {
+            const overlay = document.querySelector('.page-transition-overlay');
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                overlay.style.backgroundColor = '#f8f8f8';
+            }
+        })();
+        
+        // Apply reading mode right at page load, before any rendering
+        (function() {
+            // Check for saved reading mode ASAP
+            const savedReadMode = localStorage.getItem('blog-read-mode') === 'true';
+            if (savedReadMode) {
+                // Add class to html element to prevent any rendering until properly styled
+                document.documentElement.classList.add('read-mode-preload');
+                // Apply classes to body for the reading mode
+                document.body.classList.add('read-mode');
+                document.body.classList.add('read-mode-init');
+            }
+        })();
+        
+        // Safely display the page after all resources and styles are applied
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slightly longer delay to ensure all styles are properly applied
+            setTimeout(() => {
+                // First set up the styles and transitions
+                const container = document.querySelector('.container');
+                const toggleRain = document.querySelector('#toggle-rain');
+                const readModeToggle = document.querySelector('.read-mode-toggle');
+                const matrixRain = document.querySelector('#matrix-rain');
+                
+                container.style.transition = 'opacity 0.3s ease';
+                toggleRain.style.transition = 'opacity 0.3s ease';
+                readModeToggle.style.transition = 'opacity 0.3s ease';
+                matrixRain.style.transition = 'opacity 0.3s ease';
+                
+                // Make everything visible with a slight delay
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                    toggleRain.style.opacity = '1';
+                    readModeToggle.style.opacity = '1';
+                    
+                    // Remove loading and initialization classes
+                    document.body.classList.remove('loading');
+                    document.body.classList.remove('read-mode-init');
+                    document.documentElement.classList.remove('read-mode-preload');
+                    document.querySelector('.page-transition-overlay').style.opacity = '0';
+                    
+                    // Make html visible again
+                    document.documentElement.style.visibility = 'visible';
+                }, 100);
+            }, 100);
+        });
+        
+        // Function to save preferences to localStorage
+        function savePreferences() {
+            const isReadMode = document.body.classList.contains('read-mode');
+            const isMatrixActive = document.getElementById('toggle-rain').classList.contains('active');
+            
+            localStorage.setItem('blog-read-mode', isReadMode ? 'true' : 'false');
+            localStorage.setItem('blog-matrix-active', isMatrixActive ? 'true' : 'false');
+        }
+        
+        // Matrix rain toggle
+        document.getElementById('toggle-rain').addEventListener('click', function() {
+            const canvas = document.getElementById('matrix-rain');
+            const backdrop = document.querySelector('.content-backdrop');
+            const isReadMode = document.body.classList.contains('read-mode');
+            
+            if (this.classList.contains('active')) {
+                // Turn off matrix effect (full opacity backdrop)
+                canvas.style.opacity = '0';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)';
+                this.classList.remove('active');
+            } else {
+                // Turn on matrix effect (semi-transparent backdrop with blur)
+                canvas.style.opacity = isReadMode ? '0.03' : '0.65';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(240, 240, 240, 0.98)' : 'rgba(0, 0, 0, 0.65)';
+                this.classList.add('active');
+            }
+            
+            savePreferences();
+        });
+        
+        // Reading mode toggle
+        document.getElementById('read-mode-toggle').addEventListener('click', function() {
+            const body = document.body;
+            const backdrop = document.querySelector('.content-backdrop');
+            const matrixRain = document.getElementById('matrix-rain');
+            const toggleRainBtn = document.getElementById('toggle-rain');
+            
+            if (body.classList.contains('read-mode')) {
+                // Switch to dark mode
+                body.classList.remove('read-mode');
+                this.classList.remove('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
+                    matrixRain.style.opacity = '0.65';
+                }
+            } else {
+                // Switch to read mode
+                body.classList.add('read-mode');
+                this.classList.add('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(240, 240, 240, 0.98)';
+                    matrixRain.style.opacity = '0.03';
+                }
+            }
+            
+            savePreferences();
+        });
+        
+        // Load saved preferences
+        window.addEventListener('load', function() {
+            const savedReadMode = localStorage.getItem('blog-read-mode');
+            const savedMatrixActive = localStorage.getItem('blog-matrix-active');
+            
+            const body = document.body;
+            const backdrop = document.querySelector('.content-backdrop');
+            const matrixRain = document.getElementById('matrix-rain');
+            const toggleRainBtn = document.getElementById('toggle-rain');
+            const readModeToggle = document.getElementById('read-mode-toggle');
+            
+            // Apply reading mode if saved
+            if (savedReadMode === 'true') {
+                body.classList.add('read-mode');
+                readModeToggle.classList.add('active');
+            }
+            
+            // Apply matrix rain setting
+            const shouldEnableMatrix = savedMatrixActive === null || savedMatrixActive === 'true'; // Default to on
+            
+            if (shouldEnableMatrix) {
+                toggleRainBtn.classList.add('active');
+                matrixRain.style.opacity = body.classList.contains('read-mode') ? '0.03' : '0.65';
+                backdrop.style.backgroundColor = body.classList.contains('read-mode') ? 
+                    'rgba(240, 240, 240, 0.98)' : 'rgba(0, 0, 0, 0.65)';
+            } else {
+                matrixRain.style.opacity = '0';
+                backdrop.style.backgroundColor = body.classList.contains('read-mode') ? 
+                    'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)';
+            }
+            
+            // Modified link transition to use the page transition overlay
+            document.querySelectorAll('a').forEach(link => {
+                if (link.hostname === window.location.hostname) {
+                    link.addEventListener('click', function(e) {
+                        // Don't apply to download links or anchors
+                        if (link.getAttribute('download') || link.getAttribute('href').startsWith('#')) {
+                            return;
+                        }
+                        
+                        e.preventDefault();
+                        
+                        // Set the reading mode in transitions
+                        const isReadMode = document.body.classList.contains('read-mode');
+                        
+                        // Apply reading mode text color to body immediately
+                        if (isReadMode) {
+                            document.body.style.color = '#333';
+                        }
+                        
+                        // Create a persistent overlay that won't flicker
+                        const overlay = document.createElement('div');
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = '0';
+                        overlay.style.left = '0';
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.backgroundColor = isReadMode ? '#f8f8f8' : '#000';
+                        overlay.style.color = isReadMode ? '#333' : '#00ff00';
+                        overlay.style.zIndex = '99999';
+                        overlay.style.opacity = '0';
+                        overlay.style.transition = 'opacity 0.3s ease';
+                        document.body.appendChild(overlay);
+                        
+                        // Fade to overlay color
+                        setTimeout(() => {
+                            overlay.style.opacity = '1';
+                        }, 10);
+                        
+                        // Add special flags to localStorage to indicate a page transition with reading mode state
+                        localStorage.setItem('blog-page-transition', 'true');
+                        localStorage.setItem('blog-transition-read-mode', isReadMode ? 'true' : 'false');
+                        
+                        // Navigate after fade completes
+                        setTimeout(() => {
+                            window.location.href = link.href;
+                        }, 300);
+                    });
+                }
+            });
+            
+            // Check if we're coming from another page with a transition
+            if (localStorage.getItem('blog-page-transition') === 'true') {
+                // Clear the flags immediately
+                const wasInReadMode = localStorage.getItem('blog-transition-read-mode') === 'true';
+                localStorage.removeItem('blog-page-transition');
+                localStorage.removeItem('blog-transition-read-mode');
+                
+                // Set appropriate colors for read mode
+                if (wasInReadMode) {
+                    document.body.style.color = '#333';
+                    document.documentElement.style.color = '#333';
+                }
+                
+                // Keep the overlay visible longer with appropriate color
+                const overlay = document.querySelector('.page-transition-overlay');
+                overlay.style.backgroundColor = wasInReadMode ? '#f8f8f8' : '#000';
+                overlay.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Low-Level Network Protocols - Understanding and implementing network protocols from scratch">
+    <title>Low-Level Network Protocols - Danny's Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="blog.css">
+    <link rel="stylesheet" href="blog-post.css">
+    <script>
+        // Pre-render initialization
+        if (localStorage.getItem('blog-read-mode') === 'true') {
+            document.documentElement.classList.add('read-mode-preload');
+            
+            // Add these styles to avoid any black flash or green text
+            document.write('<style>' +
+                'html, body { background-color: #f8f8f8 !important; color: #333 !important; }' +
+                '.page-transition-overlay { background-color: #f8f8f8 !important; }' +
+                '</style>');
+        }
+    </script>
+    <style>
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        /* Read mode overlay styles */
+        html.read-mode-preload .page-transition-overlay,
+        body.read-mode .page-transition-overlay,
+        body.read-mode-init .page-transition-overlay {
+            background-color: #f8f8f8 !important;
+        }
+        
+        /* Keep the black overlay fully visible until completely loaded */
+        body.loading {
+            background-color: #000;
+        }
+        
+        body.loading .page-transition-overlay {
+            opacity: 1;
+        }
+        
+        /* Complete invisibility of content until fully ready */
+        body.loading .container,
+        body.loading #toggle-rain,
+        body.loading .read-mode-toggle,
+        body.loading #matrix-rain,
+        body.loading .content-backdrop {
+            opacity: 0;
+        }
+        
+        /* Prevent flash of green when in reading mode */
+        html.read-mode-preload,
+        body.read-mode-init {
+            background-color: #f8f8f8 !important;
+            color: #333 !important;
+            visibility: hidden;
+        }
+        
+        body.read-mode-init .blog-post-full {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-color: #ddd !important;
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .post-title,
+        body.read-mode-init .post-content h2,
+        body.read-mode-init .back-link,
+        body.read-mode-init .read-mode-toggle {
+            color: #333 !important;
+        }
+        
+        body.read-mode-init .content-backdrop {
+            background-color: rgba(240, 240, 240, 0.98) !important;
+        }
+        
+        body.read-mode-init #matrix-rain {
+            opacity: 0.03 !important;
+        }
+    </style>
+</head>
+<body class="loading">
+    <script>
+        // Immediate execution before any elements are painted
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                document.documentElement.style.backgroundColor = '#f8f8f8';
+                document.documentElement.style.color = '#333';
+                document.body.style.color = '#333';
+            }
+        }, {once: true});
+    </script>
+    <div class="page-transition-overlay"></div>
+    <canvas id="matrix-rain"></canvas>
+    <div class="content-backdrop"></div>
+    <button id="toggle-rain" class="toggle-rain-btn" title="Toggle Matrix Rain">
+        <i class="fas fa-tint"></i>
+    </button>
+    
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="top-navigation mt-4">
+                    <a href="blog.html" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Blog
+                    </a>
+                    <button id="read-mode-toggle" class="read-mode-toggle pill-button">
+                        <i class="fas fa-book-reader"></i> Reading Mode
+                    </button>
+                </div>
+                
+                <article class="blog-post-full">
+                    <header class="post-header">
+                        <h1 class="post-title">Low-Level Network Protocols</h1>
+                        <div class="post-meta">
+                            <time class="post-date" datetime="2025-01-03">3rd, Jan, 2025</time>
+                            <div class="post-tags">
+                                <span class="tag">C</span>
+                                <span class="tag">Networking</span>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div class="post-content">
+                        <p>
+                            Understanding low-level network protocols is essential for network programming, security research, and developing robust networked applications. In this post, I'll dive into the details of implementing raw socket programming in C to interact directly with network protocols.
+                        </p>
+                        
+                        <section>
+                            <h2>Raw Socket Programming</h2>
+                            <p>
+                                Raw sockets allow us to bypass the transport layer and work directly with network and data link layer protocols. This gives us the power to craft custom packets and implement protocols from scratch. Here's a basic example of creating a raw socket in C:
+                            </p>
+                            
+                            <pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/ip.h&gt;
+#include &lt;netinet/ip_icmp.h&gt;
+#include &lt;arpa/inet.h&gt;
+
+int main() {
+    // Create a raw socket
+    int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+    if (sock < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    printf("Raw socket created successfully.\n");
+    
+    // Socket options, implementation, etc. would follow here
+    
+    return 0;
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Implementing a Custom ICMP Ping</h2>
+                            <p>
+                                Let's implement a simple ICMP ping utility using raw sockets. This will demonstrate how to craft ICMP packets and interpret the responses:
+                            </p>
+                            
+                            <pre><code>// ICMP header checksum calculation
+unsigned short calculate_checksum(unsigned short *buf, int len) {
+    unsigned long sum = 0;
+    
+    // Sum all 16-bit words
+    while (len > 1) {
+        sum += *buf++;
+        len -= 2;
+    }
+    
+    // Add left-over byte if any
+    if (len == 1) {
+        sum += *(unsigned char*)buf;
+    }
+    
+    // Fold 32-bit sum to 16 bits
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    
+    return (unsigned short)(~sum);
+}
+
+// Craft and send ICMP echo request
+void send_ping(int sock, struct sockaddr_in *dest_addr) {
+    // Buffer for packet
+    char packet[64];
+    struct icmphdr *icmp = (struct icmphdr *)packet;
+    
+    // Fill ICMP header
+    memset(packet, 0, sizeof(packet));
+    icmp->type = ICMP_ECHO;        // Echo request
+    icmp->code = 0;                // Must be zero
+    icmp->un.echo.id = getpid();   // Use process ID as identifier
+    icmp->un.echo.sequence = 1;    // Sequence number
+    
+    // Fill data section with timestamps or patterns
+    char *data = packet + sizeof(struct icmphdr);
+    memcpy(data, "PINGDATA", 8);   // Some data to echo back
+    
+    // Calculate checksum
+    icmp->checksum = 0;
+    icmp->checksum = calculate_checksum((unsigned short*)icmp, 
+                                        sizeof(struct icmphdr) + 8);
+    
+    // Send the packet
+    if (sendto(sock, packet, sizeof(struct icmphdr) + 8, 0,
+               (struct sockaddr*)dest_addr, sizeof(*dest_addr)) <= 0) {
+        perror("Ping failed");
+    } else {
+        printf("Ping sent successfully\n");
+    }
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Packet Sniffing with Raw Sockets</h2>
+                            <p>
+                                We can also use raw sockets to capture and analyze network traffic. Here's a simple packet sniffer implementation:
+                            </p>
+                            
+                            <pre><code>// Simple packet sniffer
+void packet_sniffer() {
+    int sock_raw;
+    int data_size;
+    struct sockaddr_in source, dest;
+    unsigned char *buffer = (unsigned char *)malloc(65536);
+    
+    // Create a raw socket that captures all packets
+    sock_raw = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
+    if (sock_raw < 0) {
+        perror("Socket Error");
+        return;
+    }
+    
+    printf("Sniffing...\n");
+    
+    while(1) {
+        // Receive a packet
+        data_size = recvfrom(sock_raw, buffer, 65536, 0, NULL, NULL);
+        if(data_size < 0) {
+            printf("Failed to get packets\n");
+            return;
+        }
+        
+        // Process the packet
+        struct iphdr *ip_header = (struct iphdr *)buffer;
+        
+        memset(&source, 0, sizeof(source));
+        source.sin_addr.s_addr = ip_header->saddr;
+        
+        memset(&dest, 0, sizeof(dest));
+        dest.sin_addr.s_addr = ip_header->daddr;
+        
+        printf("Source IP: %s\n", inet_ntoa(source.sin_addr));
+        printf("Destination IP: %s\n", inet_ntoa(dest.sin_addr));
+        
+        // Additional packet processing would follow
+    }
+}</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>TCP/IP Header Structures</h2>
+                            <p>
+                                Understanding network protocol headers is crucial for low-level network programming. Here's the structure of a TCP header:
+                            </p>
+                            
+                            <pre><code>struct tcp_header {
+    uint16_t source_port;       // Source port
+    uint16_t dest_port;         // Destination port
+    uint32_t sequence;          // Sequence number
+    uint32_t acknowledgment;    // Acknowledgment number
+    uint8_t  data_offset:4,     // Data offset (4 bits)
+             reserved:4;        // Reserved (4 bits)
+    uint8_t  flags;             // TCP flags (CWR,ECE,URG,ACK,PSH,RST,SYN,FIN)
+    uint16_t window;            // Window size
+    uint16_t checksum;          // Checksum
+    uint16_t urgent_ptr;        // Urgent pointer
+    // Options may follow
+};</code></pre>
+                        </section>
+                        
+                        <section>
+                            <h2>Challenges and Considerations</h2>
+                            <p>
+                                When working with low-level network protocols, keep these considerations in mind:
+                            </p>
+                            <ul class="custom-list">
+                                <li>Most operating systems require elevated privileges (root/admin) to use raw sockets</li>
+                                <li>You need to handle packet fragmentation and reassembly yourself</li>
+                                <li>Network byte order (big-endian) vs. host byte order must be considered</li>
+                                <li>Different operating systems may have slightly different raw socket implementations</li>
+                            </ul>
+                        </section>
+                        
+                        <section>
+                            <h2>Future Exploration</h2>
+                            <p>
+                                In upcoming posts, I'll explore more advanced topics in network protocol implementation, including:
+                            </p>
+                            <ul class="custom-list">
+                                <li>Implementing a reliable transport protocol from scratch</li>
+                                <li>Custom VPN tunnel implementation using raw sockets</li>
+                                <li>Network protocol fuzzing for security research</li>
+                                <li>Hardware-level networking with direct NIC programming</li>
+                            </ul>
+                            <p>
+                                Understanding protocols at a low level gives you the power to build more secure, efficient, and innovative networked applications.
+                            </p>
+                        </section>
+                    </div>
+                    
+                    <footer class="post-navigation">
+                        <a href="blog-post-2.html" class="nav-link prev-post"><i class="fas fa-arrow-left"></i> Previous Post</a>
+                        <a class="nav-link disabled next-post">Next Post <i class="fas fa-arrow-right"></i></a>
+                    </footer>
+                </article>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Set overlay color immediately based on saved read mode
+        (function() {
+            const overlay = document.querySelector('.page-transition-overlay');
+            if (localStorage.getItem('blog-read-mode') === 'true') {
+                overlay.style.backgroundColor = '#f8f8f8';
+            }
+        })();
+        
+        // Apply reading mode right at page load, before any rendering
+        (function() {
+            // Check for saved reading mode ASAP
+            const savedReadMode = localStorage.getItem('blog-read-mode') === 'true';
+            if (savedReadMode) {
+                // Add class to html element to prevent any rendering until properly styled
+                document.documentElement.classList.add('read-mode-preload');
+                // Apply classes to body for the reading mode
+                document.body.classList.add('read-mode');
+                document.body.classList.add('read-mode-init');
+            }
+        })();
+        
+        // Safely display the page after all resources and styles are applied
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slightly longer delay to ensure all styles are properly applied
+            setTimeout(() => {
+                // First set up the styles and transitions
+                const container = document.querySelector('.container');
+                const toggleRain = document.querySelector('#toggle-rain');
+                const readModeToggle = document.querySelector('.read-mode-toggle');
+                const matrixRain = document.querySelector('#matrix-rain');
+                
+                container.style.transition = 'opacity 0.3s ease';
+                toggleRain.style.transition = 'opacity 0.3s ease';
+                readModeToggle.style.transition = 'opacity 0.3s ease';
+                matrixRain.style.transition = 'opacity 0.3s ease';
+                
+                // Make everything visible with a slight delay
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                    toggleRain.style.opacity = '1';
+                    readModeToggle.style.opacity = '1';
+                    
+                    // Remove loading and initialization classes
+                    document.body.classList.remove('loading');
+                    document.body.classList.remove('read-mode-init');
+                    document.documentElement.classList.remove('read-mode-preload');
+                    document.querySelector('.page-transition-overlay').style.opacity = '0';
+                    
+                    // Make html visible again
+                    document.documentElement.style.visibility = 'visible';
+                }, 100);
+            }, 100);
+        });
+        
+        // Function to save preferences to localStorage
+        function savePreferences() {
+            const isReadMode = document.body.classList.contains('read-mode');
+            const isMatrixActive = document.getElementById('toggle-rain').classList.contains('active');
+            
+            localStorage.setItem('blog-read-mode', isReadMode ? 'true' : 'false');
+            localStorage.setItem('blog-matrix-active', isMatrixActive ? 'true' : 'false');
+        }
+        
+        // Matrix rain toggle
+        document.getElementById('toggle-rain').addEventListener('click', function() {
+            const canvas = document.getElementById('matrix-rain');
+            const backdrop = document.querySelector('.content-backdrop');
+            const isReadMode = document.body.classList.contains('read-mode');
+            
+            if (this.classList.contains('active')) {
+                // Turn off matrix effect (full opacity backdrop)
+                canvas.style.opacity = '0';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)';
+                this.classList.remove('active');
+            } else {
+                // Turn on matrix effect (semi-transparent backdrop with blur)
+                canvas.style.opacity = isReadMode ? '0.03' : '0.65';
+                backdrop.style.backgroundColor = isReadMode ? 
+                    'rgba(240, 240, 240, 0.98)' : 'rgba(0, 0, 0, 0.65)';
+                this.classList.add('active');
+            }
+            
+            savePreferences();
+        });
+        
+        // Reading mode toggle
+        document.getElementById('read-mode-toggle').addEventListener('click', function() {
+            const body = document.body;
+            const backdrop = document.querySelector('.content-backdrop');
+            const matrixRain = document.getElementById('matrix-rain');
+            const toggleRainBtn = document.getElementById('toggle-rain');
+            
+            if (body.classList.contains('read-mode')) {
+                // Switch to dark mode
+                body.classList.remove('read-mode');
+                this.classList.remove('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
+                    matrixRain.style.opacity = '0.65';
+                }
+            } else {
+                // Switch to read mode
+                body.classList.add('read-mode');
+                this.classList.add('active');
+                
+                // Update backdrop if matrix rain is active
+                if (toggleRainBtn.classList.contains('active')) {
+                    backdrop.style.backgroundColor = 'rgba(240, 240, 240, 0.98)';
+                    matrixRain.style.opacity = '0.03';
+                }
+            }
+            
+            savePreferences();
+        });
+        
+        // Modified link transition to use the page transition overlay
+        document.querySelectorAll('a').forEach(link => {
+            if (link.hostname === window.location.hostname) {
+                link.addEventListener('click', function(e) {
+                    // Don't apply to download links or anchors
+                    if (link.getAttribute('download') || link.getAttribute('href').startsWith('#')) {
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    
+                    // Set the reading mode in transitions
+                    const isReadMode = document.body.classList.contains('read-mode');
+                    
+                    // Apply reading mode text color to body immediately
+                    if (isReadMode) {
+                        document.body.style.color = '#333';
+                    }
+                    
+                    // Create a persistent overlay that won't flicker
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.backgroundColor = isReadMode ? '#f8f8f8' : '#000';
+                    overlay.style.color = isReadMode ? '#333' : '#00ff00';
+                    overlay.style.zIndex = '99999';
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.3s ease';
+                    document.body.appendChild(overlay);
+                    
+                    // Fade to overlay color
+                    setTimeout(() => {
+                        overlay.style.opacity = '1';
+                    }, 10);
+                    
+                    // Add special flags to localStorage to indicate a page transition with reading mode state
+                    localStorage.setItem('blog-page-transition', 'true');
+                    localStorage.setItem('blog-transition-read-mode', isReadMode ? 'true' : 'false');
+                    
+                    // Navigate after fade completes
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, 300);
+                });
+            }
+        });
+        
+        // Check if we're coming from another page with a transition
+        if (localStorage.getItem('blog-page-transition') === 'true') {
+            // Clear the flags immediately
+            const wasInReadMode = localStorage.getItem('blog-transition-read-mode') === 'true';
+            localStorage.removeItem('blog-page-transition');
+            localStorage.removeItem('blog-transition-read-mode');
+            
+            // Set appropriate colors for read mode
+            if (wasInReadMode) {
+                document.body.style.color = '#333';
+                document.documentElement.style.color = '#333';
+            }
+            
+            // Keep the overlay visible longer with appropriate color
+            const overlay = document.querySelector('.page-transition-overlay');
+            overlay.style.backgroundColor = wasInReadMode ? '#f8f8f8' : '#000';
+            overlay.style.opacity = '1';
+        }
+    </script>
+</body>
+</html> 
