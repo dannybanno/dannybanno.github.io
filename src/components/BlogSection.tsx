@@ -13,51 +13,7 @@ const BlogSection = () => {
   };
 
   const posts = [
-    {
-      id: 2,
-      title: 'Building a Custom Debugger',
-      description: 'Creating a debugger from scratch to understand process manipulation and memory analysis.',
-      category: 'Systems',
-      date: '2025-08-20',
-      readTime: '12 min',
-      tags: ['debugger', 'process', 'windows-api']
-    },
-    {
-      id: 3,
-      title: 'Process Injection Techniques',
-      description: 'Exploring various methods of code injection including DLL injection and process hollowing.',
-      category: 'Security',
-      date: '2025-08-15',
-      readTime: '10 min',
-      tags: ['injection', 'dll', 'security']
-    },
-    {
-      id: 4,
-      title: 'Windows API Deep Dive',
-      description: 'Understanding core Windows API functions for system programming and security research.',
-      category: 'Windows',
-      date: '2025-08-10',
-      readTime: '15 min',
-      tags: ['windows-api', 'system-calls', 'c++']
-    },
-    {
-      id: 5,
-      title: 'Cheat Engine Internals',
-      description: 'Analyzing how Cheat Engine works under the hood and building similar functionality.',
-      category: 'Tools',
-      date: '2025-08-05',
-      readTime: '9 min',
-      tags: ['cheat-engine', 'memory', 'game-hacking']
-    },
-    {
-      id: 6,
-      title: 'Virtual Memory Management',
-      description: 'Understanding how operating systems manage virtual memory and address spaces.',
-      category: 'Systems',
-      date: '2025-08-01',
-      readTime: '11 min',
-      tags: ['virtual-memory', 'os', 'memory-management']
-    }
+    
   ];
 
   return (
