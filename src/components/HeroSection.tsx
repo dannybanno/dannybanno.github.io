@@ -31,10 +31,7 @@ const HeroSection = () => {
           <div className="text-xl md:text-2xl font-mono mb-8 text-muted-foreground">
             {displayText}
           </div>
-          
-          <p className="text-lg text-foreground mb-8 max-w-2xl mx-auto leading-relaxed opacity-80">
-            Exploring gamehacking, reverse engineering, and system internals through detailed technical writeups and research.
-          </p>
+      
           
           <div className="flex gap-4 justify-center">
             <a href="#blog">
